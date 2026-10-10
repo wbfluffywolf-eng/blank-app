@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
-from scipy.integrate import solve_ivp
+from scipy.integrate import solve_ivp, trapezoid
 
 MU = 3.986004418e14
 RE = 6_371_000.0
@@ -160,7 +160,7 @@ with tab3:
     _,h0,v0=sim(False)
     D=.5*np.array([rho_at(hi) for hi in h])*Cd*A*v*np.abs(v)
     mass=launch_mass-mdot*t
-    drag_dv=float(np.trapezoid(D/mass,t))
+    drag_dv=float(trapezoid(D/mass,t))
     try:
         newstages=size_stages(payload,eps,isps,dvs+np.array(shares)/sum(shares)*drag_dv,ofs,names)
         extra=sum(s["propellant_mass"] for s in newstages)-totalprop
