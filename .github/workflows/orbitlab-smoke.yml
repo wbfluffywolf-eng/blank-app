@@ -25,3 +25,12 @@ jobs:
           done
           cat /tmp/streamlit.log
           exit 1
+      - name: Test full Streamlit page with default inputs
+        run: |
+          python - <<'PY'
+          from streamlit.testing.v1 import AppTest
+          app = AppTest.from_file('orbitlab/streamlit_app.py', default_timeout=120).run()
+          if app.exception:
+              raise RuntimeError(str([getattr(x, 'message', str(x)) for x in app.exception]))
+          print("OrbitLab loaded all tabs successfully")
+          PY
