@@ -1,0 +1,29 @@
+name: NozzleLab verification
+on:
+  push:
+    branches: [mee453-orbitlab]
+  workflow_dispatch:
+jobs:
+  verify-nozzlelab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r nozzlelab/requirements.txt
+      - name: Compile NozzleLab and menu page
+        run: python -m py_compile nozzlelab/physics.py nozzlelab/streamlit_app.py orbitlab/pages/1_Problem_1_Nozzle.py
+      - name: Check nozzle equations and PDAS interpolation
+        run: python -m nozzlelab.test_nozzle
+      - name: Run Streamlit UI tests
+        run: |
+          python - <<'PY'
+          from streamlit.testing.v1 import AppTest
+          for filename in ['nozzlelab/streamlit_app.py','orbitlab/pages/1_Problem_1_Nozzle.py']:
+              app = AppTest.from_file(filename, default_timeout=120).run()
+              if app.exception:
+                  raise RuntimeError(f"{filename}: {[getattr(x, 'message', str(x)) for x in app.exception]}")
+              print(filename, "rendered without exceptions")
+          PY
