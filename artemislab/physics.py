@@ -109,7 +109,6 @@ def time_to_moon_radius(delta_v_km_s, burn_seconds=600., period_min=93.,
     vel=state[2:]
     rn=np.linalg.norm(r)
     energy=.5*np.dot(vel,vel)-MU_E/rn
-    h=np.cross(r,vel)
     evec=((np.dot(vel,vel)-MU_E/rn)*r-np.dot(r,vel)*vel)/MU_E
     ecc=np.linalg.norm(evec)
     if energy < 0:
