@@ -1,0 +1,29 @@
+name: ArtemisLab verification
+on:
+  push:
+    branches: [mee453-orbitlab]
+  workflow_dispatch:
+jobs:
+  verify-artemislab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r artemislab/requirements.txt
+      - name: Compile ArtemisLab
+        run: python -m py_compile artemislab/physics.py artemislab/streamlit_app.py orbitlab/pages/2_Problem_3_Artemis.py
+      - name: Check numerical models
+        run: python -m artemislab.test_physics
+      - name: Test Streamlit app and multipage integration
+        run: |
+          python - <<'PY'
+          from streamlit.testing.v1 import AppTest
+          for filename in ['artemislab/streamlit_app.py','orbitlab/pages/2_Problem_3_Artemis.py']:
+              app=AppTest.from_file(filename,default_timeout=170).run()
+              if app.exception:
+                  raise RuntimeError(f"{filename}: {[getattr(x, 'message', str(x)) for x in app.exception]}")
+              print(filename,"rendered without exceptions")
+          PY
